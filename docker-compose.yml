@@ -19,7 +19,7 @@ services:
     command: ["gateway"]
     restart: unless-stopped
     ports:
-      - 18790:18790
+      - "18791:18790"
     deploy:
       resources:
         limits:
