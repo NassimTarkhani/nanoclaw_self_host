@@ -91,3 +91,32 @@ export async function deleteSession(
   );
   return body.deleted;
 }
+
+export async function getConfig(
+  token: string,
+  base: string = "",
+): Promise<Record<string, unknown>> {
+  const body = await request<{ config: Record<string, unknown> }>(
+    `${base}/webui/config`,
+    token,
+  );
+  return body.config;
+}
+
+export async function setConfig(
+  token: string,
+  config: Record<string, unknown>,
+  base: string = "",
+): Promise<boolean> {
+  const res = await fetch(`${base}/webui/config`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    credentials: "same-origin",
+    body: JSON.stringify(config),
+  });
+  if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
+  return true;
+}

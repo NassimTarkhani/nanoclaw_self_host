@@ -19,6 +19,7 @@ interface SidebarProps {
   onRefresh: () => void;
   onRequestDelete: (key: string, label: string) => void;
   onCollapse: () => void;
+  onOpenSettings?: () => void;
 }
 
 export function Sidebar(props: SidebarProps) {
@@ -83,8 +84,21 @@ export function Sidebar(props: SidebarProps) {
       </div>
       <Separator className="bg-sidebar-border/70" />
       <div className="flex items-center justify-between gap-2 px-2.5 py-2 text-xs">
-        <ConnectionBadge />
-        <LanguageSwitcher />
+        <div className="flex items-center gap-2">
+          <ConnectionBadge />
+        </div>
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t("sidebar.settings")}
+            onClick={() => props.onOpenSettings?.()}
+            className="h-7 w-7 rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          >
+            <RefreshCcw className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       </div>
     </aside>
   );

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DeleteConfirm } from "@/components/DeleteConfirm";
 import { Sidebar } from "@/components/Sidebar";
+import ConfigEditor from "@/components/ConfigEditor";
 import { ThreadShell } from "@/components/thread/ThreadShell";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { preloadMarkdownText } from "@/components/MarkdownText";
@@ -17,11 +18,11 @@ type BootState =
   | { status: "loading" }
   | { status: "error"; message: string }
   | {
-      status: "ready";
-      client: NanobotClient;
-      token: string;
-      modelName: string | null;
-    };
+    status: "ready";
+    client: NanobotClient;
+    token: string;
+    modelName: string | null;
+  };
 
 const SIDEBAR_STORAGE_KEY = "nanobot-webui.sidebar";
 const SIDEBAR_WIDTH = 279;
@@ -159,6 +160,7 @@ function Shell() {
     key: string;
     label: string;
   } | null>(null);
+  const [configOpen, setConfigOpen] = useState(false);
   const lastSessionsLen = useRef(0);
 
   useEffect(() => {
@@ -244,7 +246,7 @@ function Shell() {
 
   const headerTitle = activeSession
     ? activeSession.preview ||
-      t("chat.fallbackTitle", { id: activeSession.chatId.slice(0, 6) })
+    t("chat.fallbackTitle", { id: activeSession.chatId.slice(0, 6) })
     : t("app.brand");
 
   useEffect(() => {
@@ -266,6 +268,7 @@ function Shell() {
     onRefresh: () => void refresh(),
     onRequestDelete: (key: string, label: string) =>
       setPendingDelete({ key, label }),
+    onOpenSettings: () => setConfigOpen(true),
   };
 
   return (
@@ -319,6 +322,7 @@ function Shell() {
         onCancel={() => setPendingDelete(null)}
         onConfirm={onConfirmDelete}
       />
+      <ConfigEditor open={configOpen} onOpenChange={setConfigOpen} />
     </div>
   );
 }

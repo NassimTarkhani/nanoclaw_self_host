@@ -1,0 +1,7 @@
+bot.kapturo.fr {
+    reverse_proxy nanobot-gateway:18790
+    encode gzip
+    log {
+        output file /data/caddy/access.log
+    }
+}

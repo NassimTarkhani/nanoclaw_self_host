@@ -28,7 +28,8 @@ from websockets.http11 import Response
 from nanobot.bus.events import OutboundMessage
 from nanobot.bus.queue import MessageBus
 from nanobot.channels.base import BaseChannel
-from nanobot.config.schema import Base
+from nanobot.config.schema import Base, Config
+from nanobot.config.loader import load_config, save_config
 
 if TYPE_CHECKING:
     from nanobot.session.manager import SessionManager
@@ -446,6 +447,50 @@ class WebSocketChannel(BaseChannel):
         # 3. REST surface for the embedded UI.
         if got == "/api/sessions":
             return self._handle_sessions_list(request)
+
+        # 3b. WebUI config read/write (requires API token)
+        if got == "/webui/config":
+            # Only allow callers with a valid API token (same as other REST
+            # endpoints the webui uses).
+            if not self._check_api_token(request):
+                return _http_error(401, "Unauthorized")
+
+            try:
+                if request.method == "GET":
+                    cfg = load_config()
+                    # Serialize using the public JSON aliases
+                    data = cfg.model_dump(mode="json", by_alias=True)
+                    return _http_json_response({"config": data})
+
+                # Accept PUT/POST for updates.
+                if request.method in ("POST", "PUT"):
+                    try:
+                        body = json.loads(request.body.decode("utf-8")) if hasattr(request, "body") else None
+                    except Exception:
+                        body = None
+                    # aiohttp-like WsRequest exposes .body only for websocket's
+                    # internal wrapper; fall back to reading from environ if
+                    # available via request.data (not always present). Try both.
+                    if body is None:
+                        try:
+                            body = json.loads(request.text)
+                        except Exception:
+                            body = None
+                    if not isinstance(body, dict):
+                        return _http_error(400, "Invalid JSON body")
+                    try:
+                        new_cfg = Config.model_validate(body)
+                    except Exception as e:
+                        return _http_error(400, f"Invalid configuration: {e}")
+                    try:
+                        save_config(new_cfg)
+                    except Exception as e:
+                        logger.exception("Failed to save config: {}", e)
+                        return _http_error(500, "Failed to save configuration")
+                    return _http_json_response({"ok": True})
+            except Exception:
+                logger.exception("webui config handler error")
+                return _http_error(500, "Internal Server Error")
 
         m = re.match(r"^/api/sessions/([^/]+)/messages$", got)
         if m:
