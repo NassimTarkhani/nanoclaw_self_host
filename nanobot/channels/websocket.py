@@ -546,7 +546,7 @@ class WebSocketChannel(BaseChannel):
                 self._api_tokens.pop(token_key, None)
 
     def _handle_webui_bootstrap(self, connection: Any) -> Response:
-        if not _is_localhost(connection):
+        if not _is_localhost(connection) and not self.config.webui_allow_external:
             return _http_error(403, "webui bootstrap is localhost-only")
         # Cap outstanding tokens to avoid runaway growth from a misbehaving client.
         self._purge_expired_issued_tokens()

@@ -18,6 +18,11 @@ services:
     <<: *common-config
     command: ["gateway"]
     restart: unless-stopped
+    environment:
+      # Bind to all interfaces so Traefik can reach the gateway over the Docker network.
+      - NANOBOT_GATEWAY__HOST=0.0.0.0
+      # Allow the webui bootstrap endpoint from non-localhost (proxied) connections.
+      - NANOBOT_GATEWAY__WEBUI_ALLOW_EXTERNAL=true
     # Do not publish host ports here to avoid conflicts with existing proxies.
     # Instead, rely on your existing reverse-proxy (Traefik) to route
     # bot.kapturo.fr -> nanobot-gateway:18790. Traefik will pick up these
