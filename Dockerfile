@@ -25,6 +25,10 @@ COPY nanobot/ nanobot/
 COPY bridge/ bridge/
 RUN uv pip install --system --no-cache .
 
+# Build the WebUI (React/Vite → nanobot/web/dist)
+COPY webui/ webui/
+RUN cd webui && npm ci && npm run build && cd ..
+
 # Build the WhatsApp bridge
 WORKDIR /app/bridge
 RUN git config --global --add url."https://github.com/".insteadOf ssh://git@github.com/ && \
