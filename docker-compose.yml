@@ -22,12 +22,16 @@ services:
     # Instead, rely on your existing reverse-proxy (Traefik) to route
     # bot.kapturo.fr -> nanobot-gateway:18790. Traefik will pick up these
     # Docker labels when the service is (re)created.
+    networks:
+      - coolify
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=coolify"
       - "traefik.http.routers.nanobot.rule=Host(`bot.kapturo.fr`)"
       - "traefik.http.services.nanobot.loadbalancer.server.port=18790"
-      - "traefik.http.routers.nanobot.entrypoints=websecure"
+      - "traefik.http.routers.nanobot.entrypoints=https"
       - "traefik.http.routers.nanobot.tls=true"
+      - "traefik.http.routers.nanobot.tls.certresolver=letsencrypt"
     deploy:
       resources:
         limits:
@@ -62,6 +66,6 @@ services:
     stdin_open: true
     tty: true
 
-# No reverse-proxy service in this compose file to avoid binding host ports
-# that are already in use. Use your existing proxy (Traefik) to route
-# bot.kapturo.fr to the `nanobot-gateway` service.
+networks:
+  coolify:
+    external: true
