@@ -81,6 +81,7 @@ class WebSocketConfig(Base):
     ping_timeout_s: float = Field(default=20.0, ge=5.0, le=300.0)
     ssl_certfile: str = ""
     ssl_keyfile: str = ""
+    webui_allow_external: bool = False  # Set True when behind a reverse-proxy.
 
     @field_validator("path")
     @classmethod
