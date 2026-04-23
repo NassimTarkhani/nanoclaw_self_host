@@ -18,8 +18,9 @@ services:
     <<: *common-config
     command: ["gateway"]
     restart: unless-stopped
-    ports:
-      - "18791:18790"
+    # No host port published: gateway will be reachable from other containers
+    # (Caddy) via the Docker network at nanobot-gateway:18790. This avoids
+    # binding host ports which may already be in use by older instances.
     deploy:
       resources:
         limits:
