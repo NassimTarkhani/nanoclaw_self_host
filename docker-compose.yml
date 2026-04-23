@@ -18,9 +18,16 @@ services:
     <<: *common-config
     command: ["gateway"]
     restart: unless-stopped
-    # No host port published: gateway will be reachable from other containers
-    # (Caddy) via the Docker network at nanobot-gateway:18790. This avoids
-    # binding host ports which may already be in use by older instances.
+    # Do not publish host ports here to avoid conflicts with existing proxies.
+    # Instead, rely on your existing reverse-proxy (Traefik) to route
+    # bot.kapturo.fr -> nanobot-gateway:18790. Traefik will pick up these
+    # Docker labels when the service is (re)created.
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nanobot.rule=Host(`bot.kapturo.fr`)"
+      - "traefik.http.services.nanobot.loadbalancer.server.port=18790"
+      - "traefik.http.routers.nanobot.entrypoints=websecure"
+      - "traefik.http.routers.nanobot.tls=true"
     deploy:
       resources:
         limits:
@@ -55,20 +62,6 @@ services:
     stdin_open: true
     tty: true
 
-  caddy:
-    image: caddy:2
-    container_name: nanobot-caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - nanobot-gateway
-
-volumes:
-  caddy_data:
-  caddy_config:
+# No reverse-proxy service in this compose file to avoid binding host ports
+# that are already in use. Use your existing proxy (Traefik) to route
+# bot.kapturo.fr to the `nanobot-gateway` service.
